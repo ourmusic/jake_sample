@@ -1,0 +1,16 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<br/>
+<script src="/Scripts/queue.js"></script>
+<div id="player"></div>
+<div>
+    <button onclick="videos.updateQueue();">Update Queue</button>
+
+</div>
+<p id="queue"></p>
+<script src="/Scripts/jquery-1.10.2.min.js"></script>
+<script src="/Scripts/jquery.signalR-2.2.0.js"></script>
+<script src="/signalr/hubs"></script>
+<script src="/Scripts/play.js"></script>
