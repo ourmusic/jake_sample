@@ -2,15 +2,39 @@
     ViewBag.Title = "Home Page";
 }
 
-<br/>
-<script src="/Scripts/queue.js"></script>
-<div id="player"></div>
-<div>
-    <button onclick="videos.updateQueue();">Update Queue</button>
+<head>
+    <title>Jacob's Sandbox</title>
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+</head>
 
-</div>
-<p id="queue"></p>
+<br/>
+
+<div id="player"></div>
+<>
+    <p>Title: </p><input type="text" id="vidTitle" />
+    <p>URL: </p><input type="text" id="vidUrl" />
+    <input type="button" id="addVideo" value="Add To Queue" />
+
+    <p id="higherTestP">Above</p>
+
+    <table id="queueList" class="table">
+        <thead>
+            <tr>
+                <th>Video Title</th>
+                <th>Video URL</th>
+                <th>Votes</th>
+                <th>Upvote</th>
+                <th>Downvote</th>
+            </tr>
+        </thead>
+        <tbody id="tbd">
+        </tbody>
+    </table>
+    <p id="testP">Below</p>
+
+    <!--<ul id="queueString"></ul>-->
 <script src="/Scripts/jquery-1.10.2.min.js"></script>
 <script src="/Scripts/jquery.signalR-2.2.0.js"></script>
 <script src="/signalr/hubs"></script>
 <script src="/Scripts/play.js"></script>
+<script src="/Scripts/queue.js"></script>

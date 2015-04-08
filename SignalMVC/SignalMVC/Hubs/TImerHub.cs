@@ -6,6 +6,7 @@ using Microsoft.AspNet.SignalR;
 using Microsoft.AspNet.SignalR.Hubs;
 using SignalMVC.Models;
 using System.Timers;
+using System.Threading.Tasks;
 
 namespace SignalMVC.Hubs
 {
@@ -14,7 +15,7 @@ namespace SignalMVC.Hubs
     {
         private static Timer _timer = new Timer();
 
-        private VideoQueue videoQueue = new VideoQueue();
+        private static VideoQueue videoQueue = new VideoQueue(true);
 
         /// <summary>
         /// Starts the countdown timer for the video to finish.
@@ -38,6 +39,7 @@ namespace SignalMVC.Hubs
             _timer.Stop();
             String video = GetNextVideo(); 
             Clients.All.change(video);
+
         }
 
         /// <summary>
@@ -49,25 +51,27 @@ namespace SignalMVC.Hubs
         /// <returns>The next video ID in the queue</returns>
         public String GetNextVideo()
         {
-            Video toPlay = videoQueue.RemoveFirstVideo();
-            return toPlay.GetUrl();
+            Video toPlay = videoQueue.removeFirstVideo();
+            refreshClientQueue();
+            return toPlay.getUrl();
         }
 
-        public void updateQueue()
+        public void addToQueue(string vidTitle, string vidUrl)
         {
-            Send();
+            Video newVid = new Video(vidTitle, vidUrl);
+            videoQueue.addVideo(newVid);
+            Console.WriteLine("in addToQueue");
+            //string jsonOfQueue = videoQueue.jsonQueue();
+            //Clients.All.refreshList(jsonOfQueue);
+            Clients.All.addVideo(vidTitle, vidUrl);
         }
 
-        public void Send()
+        public void refreshClientQueue()
         {
-            //var context = GlobalHost.ConnectionManager.GetHubContext<TimerHub>();
-            string jsonQueue = videoQueue.jsonQueue();
-            Clients.All.allVideos(jsonQueue);
+            string jsonOfQueue = videoQueue.jsonQueue();
+            Clients.Caller.refreshList(jsonOfQueue);
+            
         }
-
-
-
-
     }
 
 }
