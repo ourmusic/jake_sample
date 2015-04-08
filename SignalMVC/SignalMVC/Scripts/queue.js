@@ -1,5 +1,5 @@
 ﻿
-var parsedList;
+
 
 $(function () {
 
@@ -36,7 +36,7 @@ $(function () {
     tHub.client.refreshList = function (jsonString) {
         
         //parse json representation of queue into JavaScript Array of Video objects
-        parsedList = JSON.parse(jsonString);
+        var parsedList = JSON.parse(jsonString);
         var rowHTML = ""
         
         $('#tbd').empty();
@@ -67,15 +67,15 @@ $(function () {
             addRow(parsedList[i].title, parsedList[i].url, parsedList[i].votes);
 
         }
-
-        $('#queueList button.move').click(function() {
+        
+        $('#tbd button.move').click(function() {
             var row = $(this).closest('tr');
             if ($(this).hasClass('up'))
                 row.prev().before(row);
             else
                 row.next().after(row);
         });
-
+        
         
 
         //$('#tbd').append(rowHTML);
@@ -105,6 +105,9 @@ $(function () {
             $('#vidUrl').val('');
             $('#vidTitle').val('').focus();
         });
+
+ 
+
     });
 
 });
@@ -126,7 +129,7 @@ function addRow(title, url, votes) {
     //upButton.onclick = above();
     var upBtnSpan = document.createElement("span");
     upBtnSpan.className = "glyphicon glyphicon-arrow-up";
-    upBtnSpan.onclick = above();
+    //upBtnSpan.onclick = above();
     cell4.appendChild(upButton);
     upButton.appendChild(upBtnSpan);
     
@@ -134,18 +137,17 @@ function addRow(title, url, votes) {
     var cell5 = row.insertCell(4);
     var downButton = document.createElement("button");
     downButton.type = "button";
-    downButton.className = "btn btn-default btn-lg move down";
+    downButton.className = "btn btn-default btn-lg move down move up";
     /*downButton.onclick = function() {
         var row = $(this).closest('tr');
         if ($(this).hasClass('up'))
             row.prev().before(row);
         else
             row.next().after(row);
-    });
-    */
+    };*/
     var downBtnSpan = document.createElement("span");
     downBtnSpan.className = "glyphicon glyphicon-arrow-down";
-    downBtnSpan.onclick = above2();
+    //downBtnSpan.onclick = above2();
 
     downButton.appendChild(downBtnSpan);
     cell5.appendChild(downButton);
