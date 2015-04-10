@@ -12,16 +12,6 @@ $(function () {
             row.next().after(row);
     };
 
-    function above() {
-        var aboveElement = document.getElementById("higherTestP");
-        aboveElement.innerHTML = "poopopppoopoooopopopopoooop";
-    };
-
-    function above2() {
-        var aboveElement = document.getElementById("higherTestP");
-        aboveElement.innerHTML = "peeepepepepeepepepepeeeeepee";
-    };
-
     var tHub = $.connection.timerHub;
 
     //Now all arrays can call swapItems to swap objects at two indices
@@ -42,28 +32,6 @@ $(function () {
         $('#tbd').empty();
 
         for (i = 0; i < parsedList.length; i++) {
-            /*
-            rowHTML +='<tr><td>' + parsedList[i].title + '</td><td>' + parsedList[i].url +
-                '</td><td>' + parsedList[i].votes + '</td><td>' + 
-                '<button type="button" class="btn btn-default btn-lg move up"><span class="glyphicon glyphicon-arrow-up"></span></button>' +
-                '</td><td><button type="button" class="btn btn-default btn-lg move down"><span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span></button>' +
-                '</td></tr>';
-           */
-            
-            /*var upBtn = document.createElement("BUTTON");
-            upBtn.setAttributeNode(upClass);
-            upBtn.appendChild(upButtonGlyph);
-            upBtn.addEventListener("click", upVote(this));
-            curUpBtn.appendChild(upBtn);
-
-            var downBtn = document.createElement("BUTTON");
-            downBtn.setAttributeNode(downClass);
-            downBtn.appendChild(downButtonGlyph);
-            downBtn.addEventListener("click", downVote(this));
-            curDownBtn.appendChild(downBtn);
-           */
-            //curUpButon.innerHTML = "up";
-            //curDownBtn.innerHTML = "down";
             addRow(parsedList[i].title, parsedList[i].url, parsedList[i].votes);
 
         }
@@ -76,21 +44,15 @@ $(function () {
                 row.next().after(row);
         });
         
-        
-
-        //$('#tbd').append(rowHTML);
+       
 
     };
 
+    $(document.body).on('click', 'button.move', function () {
+        alert('button ' + this.parentNode.parentNode.rowIndex + ' clicked');
+    });
+
     tHub.client.addVideo = function (vidTitle, vidURL) {
-        /*rowHTML = '<tr><td>' + vidTitle + '</td><td>' + vidURL +
-                '</td><td>0</td><td>' +
-                '<button type="button" class="btn btn-default btn-lg move up"><span class="glyphicon glyphicon-arrow-up"></span></button>' +
-                '</td><td>' +
-                '<button type="button" class="btn btn-default btn-lg move down"><span class="glyphicon glyphicon-arrow-down"></span></button>' +
-                '</td></tr>';
-        $('#tbd').append(rowHTML);
-        */
         addRow(vidTitle, vidURL, 0);
     };
 
@@ -124,6 +86,7 @@ function addRow(title, url, votes) {
     cell3.innerHTML = votes;
     var cell4 = row.insertCell(3);
     var upButton = document.createElement("button");
+    upButton.id = url;
     upButton.type = "button";
     upButton.className = "btn btn-default btn-lg move up";
     //upButton.onclick = above();
@@ -136,6 +99,7 @@ function addRow(title, url, votes) {
 
     var cell5 = row.insertCell(4);
     var downButton = document.createElement("button");
+    downButton.id = url + "down";
     downButton.type = "button";
     downButton.className = "btn btn-default btn-lg move down move up";
     /*downButton.onclick = function() {
