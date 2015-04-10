@@ -3,15 +3,6 @@
 
 $(function () {
 
-
-    function moveRow() {
-        var row = $(this).closest('tr');
-        if ($(this).hasClass('up'))
-            row.prev().before(row);
-        else
-            row.next().after(row);
-    };
-
     var tHub = $.connection.timerHub;
 
     //Now all arrays can call swapItems to swap objects at two indices
@@ -20,8 +11,6 @@ $(function () {
         this[a] = this[b];
         this[b] = temp;
     };
-
-    //var parsedList;
 
     tHub.client.refreshList = function (jsonString) {
         
@@ -35,21 +24,44 @@ $(function () {
             addRow(parsedList[i].title, parsedList[i].url, parsedList[i].votes);
 
         }
-        
-        $('#tbd button.move').click(function() {
-            var row = $(this).closest('tr');
-            if ($(this).hasClass('up'))
-                row.prev().before(row);
-            else
-                row.next().after(row);
-        });
-        
+              
        
 
     };
 
-    $(document.body).on('click', 'button.move', function () {
-        alert('button ' + this.parentNode.parentNode.rowIndex + ' clicked');
+    $(document.body).on('click', 'button.upvote', function () {
+        var row = this.parentNode.parentNode;
+
+        var votesCell = row.cells[2];
+        var oldVotes = parseInt(votesCell.innerHTML);
+        votesCell.innerHTML = oldVotes + 1;
+
+        var rowIndex = row.rowIndex;
+        var videoTitle = row.cells[0].innerHTML;
+        var videoURL = row.cells[1].innerHTML;
+
+
+        var glyphSpan = this.getElementsByTagName("SPAN")[0];
+        glyphSpan.className += "red";
+        
+
+        alert("rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+
+
+
+        //this works moving the row up
+        //$(row).prev().before(row);
+
+
+    });
+
+
+    $(document.body).on('click', 'button.downvote', function () {
+
+
+        var row = this.parentNode.parentNode;
+
+        alert("button clicked in row : " + row.rowIndex + "");
     });
 
     tHub.client.addVideo = function (vidTitle, vidURL) {
@@ -82,17 +94,20 @@ function addRow(title, url, votes) {
     cell1.innerHTML = title;
     var cell2 = row.insertCell(1);
     cell2.innerHTML = url;
+
     var cell3 = row.insertCell(2);
+    cell3.className = "votesText";
     cell3.innerHTML = votes;
+
     var cell4 = row.insertCell(3);
     var upButton = document.createElement("button");
     upButton.id = url;
     upButton.type = "button";
-    upButton.className = "btn btn-default btn-lg move up";
-    //upButton.onclick = above();
+    upButton.className = "btn btn-default btn-lg move upvote";
+
     var upBtnSpan = document.createElement("span");
     upBtnSpan.className = "glyphicon glyphicon-arrow-up";
-    //upBtnSpan.onclick = above();
+
     cell4.appendChild(upButton);
     upButton.appendChild(upBtnSpan);
     
@@ -101,65 +116,12 @@ function addRow(title, url, votes) {
     var downButton = document.createElement("button");
     downButton.id = url + "down";
     downButton.type = "button";
-    downButton.className = "btn btn-default btn-lg move down move up";
-    /*downButton.onclick = function() {
-        var row = $(this).closest('tr');
-        if ($(this).hasClass('up'))
-            row.prev().before(row);
-        else
-            row.next().after(row);
-    };*/
+    downButton.className = "btn btn-default btn-lg downvote";
+
     var downBtnSpan = document.createElement("span");
     downBtnSpan.className = "glyphicon glyphicon-arrow-down";
-    //downBtnSpan.onclick = above2();
 
     downButton.appendChild(downBtnSpan);
     cell5.appendChild(downButton);
 
-
-
-    /*
-    var cell3 = row.insertCell(2);
-    var element2 = document.createElement("input");
-    element2.type = "text";
-    element2.name = "txtbox[]";
-    cell3.appendChild(element2);
-    */
-};
-/*
-$('#queueList button.move').click(function () {
-    var row = $(this).closest('tr');
-    if ($(this).hasClass('up'))
-        row.prev().before(row);
-    else
-        row.next().after(row);
-});
-*/
-/*
-function moveRow() {
-    var row = $(this).closest('tr');
-    if ($(this).hasClass('up'))
-        row.prev().before(row);
-    else
-        row.next().after(row);
-};
-*/
-/*
-function above() {
-    var aboveElement = document.getElementById("higherTestP");
-    aboveElement.innerHTML = "poopopppoopoooopopopopoooop";
-};
-
-function above2() {
-    var aboveElement = document.getElementById("higherTestP");
-    aboveElement.innerHTML = "peeepepepepeepepepepeeeeepee";
-};
-*/
-function upVote(upArrowIMG) {
-
-    window.alert("upvoted: " + upArrowIMG);
-};
-
-var downVote = function (downURL) {
-    window.alert("downvoted: " + downURL);
 };
