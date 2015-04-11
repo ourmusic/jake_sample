@@ -30,25 +30,41 @@ $(function () {
     };
 
     $(document.body).on('click', 'button.upvote', function () {
+
         var row = this.parentNode.parentNode;
 
         var votesCell = row.cells[2];
         var oldVotes = parseInt(votesCell.innerHTML);
-        votesCell.innerHTML = oldVotes + 1;
 
         var rowIndex = row.rowIndex;
         var videoTitle = row.cells[0].innerHTML;
         var videoURL = row.cells[1].innerHTML;
 
+        var spansArray = row.getElementsByTagName("SPAN");
+        var upGlyphSpan = spansArray[0];
+        var downGlyphSpan = spansArray[1];
 
-        var glyphSpan = this.getElementsByTagName("SPAN")[0];
-        glyphSpan.className += "red";
+        if(row.value == "neutral"){
+            row.value = "up";
+            votesCell.innerHTML = oldVotes + 1;
+            $(upGlyphSpan).css("color", "#FF9933");
+           // alert("neutral to up!  rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+        }
+        else if (row.value == "up") {
+            row.value = "neutral";
+            votesCell.innerHTML = oldVotes - 1;
+            $(upGlyphSpan).css("color", "#000000");
+           // alert("up to neutral! rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+        } 
+        else {
+            //currently downvoted
+            row.value = "up";
+            votesCell.innerHTML = oldVotes + 2;
+            $(upGlyphSpan).css("color", "#FF9933");
+            $(downGlyphSpan).css("color", "#000000");
+           // alert("down to up! rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+        }
         
-
-        alert("rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
-
-
-
         //this works moving the row up
         //$(row).prev().before(row);
 
@@ -58,10 +74,44 @@ $(function () {
 
     $(document.body).on('click', 'button.downvote', function () {
 
-
         var row = this.parentNode.parentNode;
 
-        alert("button clicked in row : " + row.rowIndex + "");
+        var votesCell = row.cells[2];
+        var oldVotes = parseInt(votesCell.innerHTML);
+
+        var rowIndex = row.rowIndex;
+        var videoTitle = row.cells[0].innerHTML;
+        var videoURL = row.cells[1].innerHTML;
+
+        var spansArray = row.getElementsByTagName("SPAN");
+        var upGlyphSpan = spansArray[0];
+        var downGlyphSpan = spansArray[1];
+
+        if (row.value == "neutral") {
+            row.value = "down";
+            votesCell.innerHTML = oldVotes - 1;
+            $(downGlyphSpan).css("color", "#33CCFF");
+           // alert("neutral to down!  rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+        }
+        else if (row.value == "down") {
+            row.value = "neutral";
+            votesCell.innerHTML = oldVotes + 1;
+            $(downGlyphSpan).css("color", "#000000");
+            //alert("down to neutral! rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+        }
+        else {
+            //currently upvoted
+            row.value = "down";
+            votesCell.innerHTML = oldVotes - 2;
+            $(upGlyphSpan).css("color", "#000000");
+            $(downGlyphSpan).css("color", "#33CCFF");
+            //alert("up to down! rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+        }
+
+        //this works moving the row up
+        //$(row).prev().before(row);
+
+
     });
 
     tHub.client.addVideo = function (vidTitle, vidURL) {
@@ -90,6 +140,7 @@ function addRow(title, url, votes) {
     var table = document.getElementById('queueList');
     var rowCount = table.rows.length;
     var row = table.insertRow(rowCount);
+    row.value = "neutral";
     var cell1 = row.insertCell(0);
     cell1.innerHTML = title;
     var cell2 = row.insertCell(1);
@@ -103,7 +154,7 @@ function addRow(title, url, votes) {
     var upButton = document.createElement("button");
     upButton.id = url;
     upButton.type = "button";
-    upButton.className = "btn btn-default btn-lg move upvote";
+    upButton.className = "btn btn-default btn-sm move upvote";
 
     var upBtnSpan = document.createElement("span");
     upBtnSpan.className = "glyphicon glyphicon-arrow-up";
@@ -116,7 +167,7 @@ function addRow(title, url, votes) {
     var downButton = document.createElement("button");
     downButton.id = url + "down";
     downButton.type = "button";
-    downButton.className = "btn btn-default btn-lg downvote";
+    downButton.className = "btn btn-default btn-sm downvote";
 
     var downBtnSpan = document.createElement("span");
     downBtnSpan.className = "glyphicon glyphicon-arrow-down";
