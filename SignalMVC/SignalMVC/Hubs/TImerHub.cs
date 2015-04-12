@@ -66,6 +66,12 @@ namespace SignalMVC.Hubs
             Clients.All.addVideo(vidTitle, vidUrl);
         }
 
+        public void voteByTitleAndUrl(string vidTitle, string vidUrl, int voteChange)
+        {
+            int movement = videoQueue.vote(vidTitle, vidUrl, voteChange);
+            Clients.All.adjustVotesAndPlacement(vidUrl, voteChange, movement);
+        }
+
         public void refreshClientQueue()
         {
             string jsonOfQueue = videoQueue.jsonQueue();

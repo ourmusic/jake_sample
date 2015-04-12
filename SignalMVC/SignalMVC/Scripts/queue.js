@@ -18,7 +18,7 @@ $(function () {
         var parsedList = JSON.parse(jsonString);
         var rowHTML = ""
         
-        $('#tbd').empty();
+        $('#queueList tr').remove();
 
         for (i = 0; i < parsedList.length; i++) {
             addRow(parsedList[i].title, parsedList[i].url, parsedList[i].votes);
@@ -28,6 +28,30 @@ $(function () {
        
 
     };
+
+    tHub.client.adjustVotesAndPlacement = function (videoUrl, votesChange, movement) {
+
+        var videoRow = document.getElementById("queueList").rows.namedItem(videoUrl);
+        //alert("movement = " + movement);
+        var votesCell = videoRow.cells[2];
+        var oldVotes = parseInt(votesCell.innerHTML);
+        votesCell.innerHTML = oldVotes + votesChange;
+        //var toMove = movement;
+
+        while(movement > 0) {
+            //move up
+            //alert("moving up")
+            $(videoRow).prev().before(videoRow);
+            movement--;
+        }
+        while (movement < 0) {
+            $(videoRow).next().after(videoRow);
+            movement++;
+        }
+
+
+    };
+
 
     $(document.body).on('click', 'button.upvote', function () {
 
@@ -46,27 +70,30 @@ $(function () {
 
         if(row.value == "neutral"){
             row.value = "up";
-            votesCell.innerHTML = oldVotes + 1;
+            //votesCell.innerHTML = oldVotes + 1;
+            
             $(upGlyphSpan).css("color", "#FF9933");
-           // alert("neutral to up!  rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+            // alert("neutral to up!  rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+            tHub.server.voteByTitleAndUrl(videoTitle, videoURL, 1);
         }
         else if (row.value == "up") {
             row.value = "neutral";
-            votesCell.innerHTML = oldVotes - 1;
+            //votesCell.innerHTML = oldVotes - 1;
             $(upGlyphSpan).css("color", "#000000");
-           // alert("up to neutral! rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+            // alert("up to neutral! rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+            tHub.server.voteByTitleAndUrl(videoTitle, videoURL, -1);
         } 
         else {
             //currently downvoted
             row.value = "up";
-            votesCell.innerHTML = oldVotes + 2;
+            //votesCell.innerHTML = oldVotes + 2;
             $(upGlyphSpan).css("color", "#FF9933");
             $(downGlyphSpan).css("color", "#000000");
-           // alert("down to up! rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+            // alert("down to up! rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+            tHub.server.voteByTitleAndUrl(videoTitle, videoURL, 2);
         }
         
-        //this works moving the row up
-        //$(row).prev().before(row);
+
 
 
     });
@@ -89,27 +116,28 @@ $(function () {
 
         if (row.value == "neutral") {
             row.value = "down";
-            votesCell.innerHTML = oldVotes - 1;
+            //votesCell.innerHTML = oldVotes - 1;
             $(downGlyphSpan).css("color", "#33CCFF");
-           // alert("neutral to down!  rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+            // alert("neutral to down!  rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+            tHub.server.voteByTitleAndUrl(videoTitle, videoURL, -1);
         }
         else if (row.value == "down") {
             row.value = "neutral";
-            votesCell.innerHTML = oldVotes + 1;
+            //votesCell.innerHTML = oldVotes + 1;
             $(downGlyphSpan).css("color", "#000000");
             //alert("down to neutral! rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+            tHub.server.voteByTitleAndUrl(videoTitle, videoURL, 1);
         }
         else {
             //currently upvoted
             row.value = "down";
-            votesCell.innerHTML = oldVotes - 2;
+            //votesCell.innerHTML = oldVotes - 2;
             $(upGlyphSpan).css("color", "#000000");
             $(downGlyphSpan).css("color", "#33CCFF");
             //alert("up to down! rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
+            tHub.server.voteByTitleAndUrl(videoTitle, videoURL, -2);
         }
 
-        //this works moving the row up
-        //$(row).prev().before(row);
 
 
     });
@@ -122,6 +150,7 @@ $(function () {
     // Start the connection.
     $.connection.hub.start().done(function () {
         tHub.server.refreshClientQueue();
+
         $('#addVideo').click(function () {
             // Call the Send method on the hub.
             tHub.server.addToQueue($('#vidTitle').val(), $('#vidUrl').val());
@@ -129,6 +158,10 @@ $(function () {
             $('#vidUrl').val('');
             $('#vidTitle').val('').focus();
         });
+
+
+
+
 
  
 
@@ -141,6 +174,7 @@ function addRow(title, url, votes) {
     var rowCount = table.rows.length;
     var row = table.insertRow(rowCount);
     row.value = "neutral";
+    row.id = url;
     var cell1 = row.insertCell(0);
     cell1.innerHTML = title;
     var cell2 = row.insertCell(1);
