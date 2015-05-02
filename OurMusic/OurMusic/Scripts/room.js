@@ -1,53 +1,70 @@
 ﻿
+//global which is set to the room name using javascript DOM.  sent as parameter to server functions
+var roomName;
 
 
 $(function () {
 
-    var tHub = $.connection.timerHub;
+    var rHub = $.connection.roomHub;
 
-    //Now all arrays can call swapItems to swap objects at two indices
-    /*Array.prototype.swapItems = function (a, b) {
-        var temp = this[a];
-        this[a] = this[b];
-        this[b] = temp;
-    };
-    */
-    var roomName = document.getElementById("roomName").innerHTML;
+    roomName = document.getElementById("roomName").innerHTML;
 
-
-
-
-    tHub.client.refreshList = function (jsonString) {
+    rHub.client.refreshList = function (jsonString) {
 
         //parse json representation of queue into JavaScript Array of Video objects
         var parsedList = JSON.parse(jsonString);
-        var rowHTML = ""
+        var rowHTML = "";
 
         $('#tbd tr').remove();
 
         for (i = 0; i < parsedList.length; i++) {
             addRow(parsedList[i].title, parsedList[i].url, parsedList[i].votes);
-
         }
+    };
 
 
+
+    rHub.client.deleteVideo = function (videoUrl) {
+        var videoRow = document.getElementById("queueList").rows.namedItem(videoUrl);
+        $(videoRow).remove();
+    };
+
+    rHub.client.userRemoved = function (uID) {
+       
+        var myID = document.getElementById("currentID").value;
+        
+
+        if (myID == uID) {
+            rHub.server.leaveRoom(roomName);
+            alert("You have been removed from the room.  Your actions will no longer affect the other users in the room.");
+        } else {
+            var listItem = document.getElementById(uID);
+            var uList = document.getElementById("userList");
+            uList.removeChild(listItem);
+        }
 
     };
 
-    tHub.client.adjustVotesAndPlacement = function (videoUrl, votesChange, movement) {
+    rHub.client.addNewUser = function (firstName, lastName, userID) {
+        addUser(firstName, lastName, userID);
+    };
+
+    rHub.client.alertRoomHasBeenDeleted = function () {
+        alert("Room " + roomName + " has been deleted by the administrator.  This room is no longer functional. :(");
+    };
+
+
+    rHub.client.adjustVotesAndPlacement = function (videoUrl, votesChange, movement) {
 
         if (movement == -999) return;
 
         var videoRow = document.getElementById("queueList").rows.namedItem(videoUrl);
-        //alert("movement = " + movement);
         var votesCell = videoRow.cells[2];
         var oldVotes = parseInt(votesCell.innerHTML);
         votesCell.innerHTML = oldVotes + votesChange;
-        //var toMove = movement;
 
         while (movement > 0) {
             //move up
-            //alert("moving up")
             $(videoRow).prev().before(videoRow);
             movement--;
         }
@@ -59,6 +76,28 @@ $(function () {
 
     };
 
+    $(document.body).on('click', 'span.removeUser', function () {
+
+
+        var userID = this.getAttribute('data-userID');
+
+        rHub.server.removeUser(userID, roomName);
+
+
+    });
+
+
+    $(document.body).on('click', 'button.delete', function () {
+
+        var row = this.parentNode.parentNode;
+
+        var rowIndex = row.rowIndex;
+        var videoTitle = row.cells[0].innerHTML;
+        var videoURL = row.cells[1].innerHTML;
+
+        rHub.server.deleteVideo(videoTitle, videoURL, roomName);
+
+    });
 
     $(document.body).on('click', 'button.upvote', function () {
 
@@ -75,33 +114,24 @@ $(function () {
         var upGlyphSpan = spansArray[0];
         var downGlyphSpan = spansArray[1];
 
+
         if (row.value == "neutral") {
             row.value = "up";
-            //votesCell.innerHTML = oldVotes + 1;
 
             $(upGlyphSpan).css("color", "#FF9933");
-            // alert("neutral to up!  rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
-            tHub.server.voteByTitleAndUrl(videoTitle, videoURL, 1, roomName);
+            rHub.server.voteByTitleAndUrl(videoTitle, videoURL, 1, roomName);
         }
         else if (row.value == "up") {
             row.value = "neutral";
-            //votesCell.innerHTML = oldVotes - 1;
             $(upGlyphSpan).css("color", "#FFFFFF");
-            // alert("up to neutral! rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
-            tHub.server.voteByTitleAndUrl(videoTitle, videoURL, -1, roomName);
+            rHub.server.voteByTitleAndUrl(videoTitle, videoURL, -1, roomName);
         }
         else {
-            //currently downvoted
             row.value = "up";
-            //votesCell.innerHTML = oldVotes + 2;
             $(upGlyphSpan).css("color", "#FF9933");
             $(downGlyphSpan).css("color", "#FFFFFF");
-            // alert("down to up! rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
-            tHub.server.voteByTitleAndUrl(videoTitle, videoURL, 2, roomName);
+            rHub.server.voteByTitleAndUrl(videoTitle, videoURL, 2, roomName);
         }
-
-
-
 
     });
 
@@ -124,33 +154,27 @@ $(function () {
 
         if (row.value == "neutral") {
             row.value = "down";
-            //votesCell.innerHTML = oldVotes - 1;
             $(downGlyphSpan).css("color", "#33CCFF");
-            // alert("neutral to down!  rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
-            tHub.server.voteByTitleAndUrl(videoTitle, videoURL, -1, roomName);
+            rHub.server.voteByTitleAndUrl(videoTitle, videoURL, -1, roomName);
         }
         else if (row.value == "down") {
             row.value = "neutral";
-            //votesCell.innerHTML = oldVotes + 1;
             $(downGlyphSpan).css("color", "#FFFFFF");
-            //alert("down to neutral! rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
-            tHub.server.voteByTitleAndUrl(videoTitle, videoURL, 1, roomName);
+            rHub.server.voteByTitleAndUrl(videoTitle, videoURL, 1, roomName);
         }
         else {
             //currently upvoted
             row.value = "down";
-            //votesCell.innerHTML = oldVotes - 2;
             $(upGlyphSpan).css("color", "#FFFFFF");
             $(downGlyphSpan).css("color", "#33CCFF");
-            //alert("up to down! rowIndex: " + rowIndex + " videoTitle: " + videoTitle + " videoURL: " + videoURL + " oldVotes: " + oldVotes);
-            tHub.server.voteByTitleAndUrl(videoTitle, videoURL, -2, roomName);
+            rHub.server.voteByTitleAndUrl(videoTitle, videoURL, -2, roomName);
         }
 
 
 
     });
 
-    tHub.client.addVideo = function (vidTitle, vidURL) {
+    rHub.client.addVideo = function (vidTitle, vidURL) {
         addRow(vidTitle, vidURL, 0);
     };
 
@@ -159,21 +183,22 @@ $(function () {
     $.connection.hub.start().done(function () {
 
         var rName = document.getElementById("roomName").innerHTML;
-        tHub.server.refreshClient(rName);
+        var firstName = document.getElementById("firstName").value;
+        var lastName = document.getElementById("lastName").value;
+        var userID = document.getElementById("currentID").value;
+
+        rHub.server.refreshClient(rName, userID);
+        rHub.server.announceEntranceToRoom(rName, firstName, lastName, userID);
+
+
 
         $('#addVideo').click(function () {
             // Call the Send method on the hub.
-            tHub.server.addToQueue($('#vidTitle').val(), $('#vidUrl').val(), roomName);
+            rHub.server.addToQueue($('#vidTitle').val(), $('#vidUrl').val(), roomName);
             // Clear text box and reset focus for next comment.
             $('#vidUrl').val('');
             $('#vidTitle').val('').focus();
         });
-
-
-
-
-
-
 
     });
 
@@ -182,7 +207,35 @@ $(function () {
 function deleteRow(r) {
     var i = r.parentNode.parentNode.rowIndex;
     document.getElementById("myTable").deleteRow(i);
-}
+};
+
+function addUser(firstName, lastName, userID) {
+
+    var li = document.createElement("li");
+    li.className = "list-group-item";
+    li.id = userID;
+    var nameString = firstName + " " + lastName;
+    if (document.getElementById("adminID").value == userID) {
+        var adminString = "(Administrator)";
+        nameString += " " + adminString;
+    }
+    li.appendChild(document.createTextNode(nameString));
+
+    if (document.getElementById("isAdmin").value == "admin") {
+        var xSpan = document.createElement("SPAN");
+        xSpan.className = "glyphicon glyphicon-remove removeUser";
+        xSpan.setAttribute('data-userID', userID);
+        $(xSpan).css("float", "right");
+        $(xSpan).css("color", "red");
+
+        li.appendChild(xSpan);
+
+    }
+
+    var ul = document.getElementById("userList");
+    ul.appendChild(li);
+
+};
 
 function addRow(title, url, votes) {
     var table = document.getElementById('queueList');
@@ -205,6 +258,8 @@ function addRow(title, url, votes) {
     upButton.type = "button";
     upButton.className = "btn btn-default btn-sm move upvote";
 
+
+
     var upBtnSpan = document.createElement("span");
     upBtnSpan.className = "glyphicon glyphicon-arrow-up";
 
@@ -224,4 +279,20 @@ function addRow(title, url, votes) {
     downButton.appendChild(downBtnSpan);
     cell5.appendChild(downButton);
 
+    if (document.getElementById("isAdmin").value == "admin") {
+        var cell6 = row.insertCell(5);
+        var delButton = document.createElement("button");
+        delButton.id = url;
+        delButton.type = "button";
+        delButton.className = "btn btn-default btn-sm delete red";
+
+
+
+        var delSpan = document.createElement("span");
+        delSpan.className = "glyphicon glyphicon-remove red";
+        $(delSpan).css("color", "#FF0000");
+
+        delButton.appendChild(delSpan);
+        cell6.appendChild(delButton);
+    }
 };

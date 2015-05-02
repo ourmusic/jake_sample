@@ -14,8 +14,8 @@ namespace OurMusic.Models
     {
         private String _roomID;
         private VideoQueue _queue;
-        private static Timer _timer = new Timer();
-        private IHubContext _context = GlobalHost.ConnectionManager.GetHubContext<TimerHub>();
+        private Timer _timer = new Timer();
+        private IHubContext _context = GlobalHost.ConnectionManager.GetHubContext<RoomHub>();
 
         public PublicRoom(String guid)
         {
@@ -32,14 +32,7 @@ namespace OurMusic.Models
             _context.Clients.Group(_roomID).change(video);
         }
 
-        /**
-        public void StartInitCountDown(int seconds)
-        {
-            _timer.Interval = (seconds + 2) * 1000;
-            _timer.Elapsed += new ElapsedEventHandler(_timer_Done);
-            _timer.Start();
-        }
-        **/
+
         public void CountDown(int seconds)
         {
             _timer.Interval = (seconds + 2) * 1000;
@@ -72,19 +65,21 @@ namespace OurMusic.Models
 
         public int voteAndUpdate(string vidTitle, string vidUrl, int voteChange)
         {
+            System.Diagnostics.Debug.WriteLine("voteAndUpdate : " + vidTitle + ", " + voteChange);
             return _queue.vote(vidTitle, vidUrl, voteChange);
 
         }
 
         public void updateContext()
         {
-            _context = GlobalHost.ConnectionManager.GetHubContext<TimerHub>();
+            _context = GlobalHost.ConnectionManager.GetHubContext<RoomHub>();
 
         }
 
-
-
-
+        public void deleteVideo(string videoTitle, string videoUrl)
+        {
+            _queue.delete(videoTitle, videoUrl);
+        }
 
 
 
